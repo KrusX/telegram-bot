@@ -18,20 +18,20 @@ var keyboardMain = new ReplyKeyboardMarkup
 (
     new[]
     {
-                        new[]
-                        {
-                            new KeyboardButton("Отпуск"),
-                            new KeyboardButton("Больничный")
-                        },
-                        new[]
-                        {
-                            new KeyboardButton("Вопросы по ПО и оборудованию"),
-                            new KeyboardButton("Программа компенсаций")
-                        },
-                        new[]
-                        {
-                            new KeyboardButton("Инфраструктура офиса")
-                        }
+        new[]
+        {
+            new KeyboardButton("Отпуск"),
+            new KeyboardButton("Больничный")
+        },
+        new[]
+        {
+            new KeyboardButton("Вопросы по ПО и оборудованию"),
+            new KeyboardButton("Программа компенсаций")
+        },
+        new[]
+        {
+            new KeyboardButton("Инфраструктура офиса")
+        }
     }
 );
 
@@ -61,14 +61,62 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         return;
 
     var chatId = update.Message.Chat.Id;
-    var messageText = update.Message.Text;
+    var messageText = update.Message.Text.ToLower();
 
     Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
 
-    Message sentMessage = await botClient.SendTextMessageAsync(
+    await ChooseAnswerOption(botClient, chatId, messageText, cancellationToken);
+}
+
+async Task ChooseAnswerOption(ITelegramBotClient botClient, long chatId, string messageText, CancellationToken cancellationToken)
+{
+    if (messageText != null)
+    switch (messageText)
+    {
+        case "/start":
+            {
+                await SendMessage(chatId, "О чем вы хотите получить информацию?", cancellationToken, keyboardMain);
+                break;
+            }
+        case "отпуск":
+            {
+                await SendMessage(chatId, "Отпуск с 1 по 15", cancellationToken);
+                break;
+            }
+        case "больничный":
+            {
+                await SendMessage(chatId, "Больничный с 15 по 30", cancellationToken);
+                break;
+            }
+        case "вопросы по по и оборудованию":
+            {
+                await SendMessage(chatId, "Вопросы по ПО здесь ---", cancellationToken);
+                break;
+            }
+        case "программа компенсаций":
+            {
+                await SendMessage(chatId, "Программа компенсаций включает в себя...", cancellationToken);
+                break;
+            }
+        case "инфраструктура офиса":
+            {
+                await SendMessage(chatId, "Карта инфраструктуры офиса: 1, 2, 3 ....", cancellationToken);
+                break;
+            }
+        default:
+            {
+                await SendMessage(chatId, "Выберите интересующий Вас вопрос.", cancellationToken);
+                break;
+            }
+    }
+}
+
+async Task SendMessage(long chatId, string message, CancellationToken cancellationToken, ReplyKeyboardMarkup replyKeyboard = null)
+{
+    await botClient.SendTextMessageAsync(
         chatId: chatId,
-        text: "hi, hi, hi",
-        replyMarkup: keyboardMain,
+        text: message,
+        replyMarkup: replyKeyboard,
         cancellationToken: cancellationToken);
 }
 
