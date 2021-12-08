@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -6,10 +8,32 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 var botClient = new TelegramBotClient("5081793184:AAEgWcQZo1LXLfeTenlqSSqAFvxvg24ShA8");
 
 using var cts = new CancellationTokenSource();
+
+var keyboardMain = new ReplyKeyboardMarkup
+(
+    new[]
+    {
+                        new[]
+                        {
+                            new KeyboardButton("Отпуск"),
+                            new KeyboardButton("Больничный")
+                        },
+                        new[]
+                        {
+                            new KeyboardButton("Вопросы по ПО и оборудованию"),
+                            new KeyboardButton("Программа компенсаций")
+                        },
+                        new[]
+                        {
+                            new KeyboardButton("Инфраструктура офиса")
+                        }
+    }
+);
 
 var receiverOptions = new ReceiverOptions
 {
@@ -43,7 +67,8 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
 
     Message sentMessage = await botClient.SendTextMessageAsync(
         chatId: chatId,
-        text: "You said:\n" + messageText,
+        text: "hi, hi, hi",
+        replyMarkup: keyboardMain,
         cancellationToken: cancellationToken);
 }
 
