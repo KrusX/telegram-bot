@@ -38,8 +38,13 @@ namespace InrecoTelegram.Bot.Command.Commands
         {
             await client.SendTextMessageAsync(
                 chatId: message.Chat.Id,
-                text: "Какую информацию Вы хотите получить?",
+                text: "Здравствуйте, какую информацию Вы хотели бы получить?",
                 replyMarkup: keyboardMain,
+                cancellationToken: cancellationToken);
+
+            await client.SendStickerAsync(
+                chatId: message.Chat.Id,
+                sticker: "CAACAgIAAxkBAAIBj2G40_DIGSc3l30DyJKfOQoIeUc9AAIJEQAC1PU5S3AxrumUnWFAIwQ",
                 cancellationToken: cancellationToken);
         }
     }

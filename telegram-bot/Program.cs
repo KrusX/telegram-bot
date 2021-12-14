@@ -1,5 +1,5 @@
-﻿
-using InrecoTelegram.Bot.Command.Commands;
+﻿using InrecoTelegram.Bot.Command.Commands;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -14,20 +14,24 @@ namespace InrecoTelegram.Bot
 {
     class Program
     {
-        private static TelegramBotClient botClient;
-        private static List<Command.Command> commands;
+        private static TelegramBotClient _botClient;
+        private static List<Command.Command> _commands;
+        private readonly static string _connString = $"Host={Config.HostDB};" +
+                                            $"Username={Config.UsernameDB};" +
+                                            $"Password={Config.PasswordDB};" +
+                                            $"Database={Config.Database}";
 
-        public static void Main()
+        private static void Main()
         {
             MainAsync().GetAwaiter().GetResult();
         }
 
         private static async Task MainAsync()
         {
-            botClient = new TelegramBotClient(Config.Token);
+            _botClient = new TelegramBotClient(Config.Token);
             using var cts = new CancellationTokenSource();
 
-            commands = new List<Command.Command>() {
+            _commands = new List<Command.Command>() {
                 new GetStarted(),
                 new GetInfoAboutVacation(),
                 new GetInfoAboutSinkLeave(),
@@ -41,20 +45,20 @@ namespace InrecoTelegram.Bot
                 AllowedUpdates = { }
             };
 
-            botClient.StartReceiving(
+            _botClient.StartReceiving(
                 HandleUpdateAsync,
                 HandleErrorAsync,
                 receiverOptions,
                 cancellationToken: cts.Token);
 
-            var me = await botClient.GetMeAsync();
+            var me = await _botClient.GetMeAsync();
 
             Console.WriteLine($"Start listening for @{me.Username}");
             Console.ReadLine();
             cts.Cancel();
         }
 
-        static async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        private static async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             if (update.Type != UpdateType.Message)
                 return;
@@ -64,19 +68,40 @@ namespace InrecoTelegram.Bot
 
             var chatId = update.Message.Chat.Id;
             var messageText = update.Message.Text.ToLower();
-
+            
             Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
 
-            foreach (var comm in commands)
+            if (await CheckAccessChatId(chatId, cancellationToken))
             {
-                if (comm.Equals(messageText))
+                foreach (var command in _commands)
                 {
-                    comm.Execute(update.Message, botClient, cancellationToken);
+                    if (command.Equals(messageText))
+                    {
+                        command.Execute(update.Message, botClient, cancellationToken);
+                    }
                 }
             }
         }
 
-        static Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+        private static async Task<bool> CheckAccessChatId(long chatId, CancellationToken cancellationToken)
+        {
+            await using var conn = new NpgsqlConnection(_connString);
+            await conn.OpenAsync(cancellationToken);
+
+            await using var cmd = new NpgsqlCommand("SELECT id FROM users", conn);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                if (reader.GetInt64(0) == chatId)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
             var ErrorMessage = exception switch
             {
