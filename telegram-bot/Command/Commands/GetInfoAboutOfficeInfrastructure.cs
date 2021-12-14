@@ -6,18 +6,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace InrecoTelegram.Bot.Command.Commands
 {
     class GetInfoAboutOfficeInfrastructure : Command
     {
-        public override string[] Names { get; set; } = new string[] { "инфраструктура офиса" };
+        public override string[] Names { get; set; } = new string[] { "инфраструктура офиса", "карта офиса" };
 
         public override async void Execute(Message message, ITelegramBotClient client, CancellationToken cancellationToken)
         {
-            await client.SendTextMessageAsync(
+            await client.SendPhotoAsync(
                 chatId: message.Chat.Id,
-                text: "Инфраструктура офиса включает в себя 1. 2. 3. ...",
+                photo: "https://res.cloudinary.com/krusx/image/upload/v1639487410/astrophysici_qkxzbv.jpg",
+                caption: "1. Кабинет.\n2. Коридор.",
+                replyToMessageId: message.MessageId,
+                replyMarkup: new InlineKeyboardMarkup(
+                    InlineKeyboardButton.WithUrl(
+                        "Подробнее",
+                        "https://github.com/KrusX")),
                 cancellationToken: cancellationToken);
         }
     }

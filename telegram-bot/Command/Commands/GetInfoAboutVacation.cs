@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace InrecoTelegram.Bot.Command.Commands
 {
@@ -17,7 +18,9 @@ namespace InrecoTelegram.Bot.Command.Commands
         {
             await client.SendTextMessageAsync(
                 chatId: message.Chat.Id,
-                text: "Отпуск с 1 по 15",
+                text: "Задать вопрос по поводу отпуска можно <a href=\"tg://user?id=1283115295\">Петрову А. А.</a>",
+                parseMode: ParseMode.Html,
+                replyToMessageId: message.MessageId,
                 cancellationToken: cancellationToken);
         }
     }

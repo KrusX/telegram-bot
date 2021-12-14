@@ -12,7 +12,7 @@ namespace InrecoTelegram.Bot.Command.Commands
 {
     class GetStarted : Command
     {
-        private readonly ReplyKeyboardMarkup keyboardMain = new            (
+        private readonly ReplyKeyboardMarkup keyboardMain = new (
                 new[]
                 {
                     new[]

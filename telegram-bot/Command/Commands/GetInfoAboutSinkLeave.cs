@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace InrecoTelegram.Bot.Command.Commands
 {
@@ -17,7 +19,9 @@ namespace InrecoTelegram.Bot.Command.Commands
         {
             await client.SendTextMessageAsync(
                 chatId: message.Chat.Id,
-                text: "Больничный с 15 по 30",
+                text: "Задать вопрос по поводу больничного можно <a href=\"tg://user?id=1283115295\">Петрову А. А.</a>",
+                parseMode: ParseMode.Html,
+                replyToMessageId: message.MessageId,
                 cancellationToken: cancellationToken);
         }
     }
