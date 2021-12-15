@@ -1,4 +1,5 @@
 ﻿using InrecoTelegram.Bot.Command.Commands;
+using InrecoTelegram.Bot.DataBase;
 using Npgsql;
 using System;
 using System.Collections.Generic;
@@ -14,12 +15,8 @@ namespace InrecoTelegram.Bot
 {
     class Program
     {
-        private static TelegramBotClient _botClient;
+        private static readonly string _connString = RepositoryBase.GetConnectionString();
         private static List<Command.Command> _commands;
-        private readonly static string _connString = $"Host={Config.HostDB};" +
-                                            $"Username={Config.UsernameDB};" +
-                                            $"Password={Config.PasswordDB};" +
-                                            $"Database={Config.Database}";
 
         private static void Main()
         {
@@ -28,10 +25,11 @@ namespace InrecoTelegram.Bot
 
         private static async Task MainAsync()
         {
-            _botClient = new TelegramBotClient(Config.Token);
+            var botClient = new TelegramBotClient(Environment.GetEnvironmentVariable("TOKEN"));
             using var cts = new CancellationTokenSource();
-
-            _commands = new List<Command.Command>() {
+            
+            _commands = new()
+            {
                 new GetStarted(),
                 new GetInfoAboutVacation(),
                 new GetInfoAboutSinkLeave(),
@@ -45,13 +43,13 @@ namespace InrecoTelegram.Bot
                 AllowedUpdates = { }
             };
 
-            _botClient.StartReceiving(
+            botClient.StartReceiving(
                 HandleUpdateAsync,
                 HandleErrorAsync,
                 receiverOptions,
                 cancellationToken: cts.Token);
 
-            var me = await _botClient.GetMeAsync();
+            var me = await botClient.GetMeAsync();
 
             Console.WriteLine($"Start listening for @{me.Username}");
             Console.ReadLine();
@@ -71,7 +69,7 @@ namespace InrecoTelegram.Bot
             
             Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
 
-            if (await CheckAccessChatId(chatId, cancellationToken))
+            if (await IsUserValid(chatId, cancellationToken))
             {
                 foreach (var command in _commands)
                 {
@@ -83,7 +81,7 @@ namespace InrecoTelegram.Bot
             }
         }
 
-        private static async Task<bool> CheckAccessChatId(long chatId, CancellationToken cancellationToken)
+        private static async Task<bool> IsUserValid(long chatId, CancellationToken cancellationToken)
         {
             await using var conn = new NpgsqlConnection(_connString);
             await conn.OpenAsync(cancellationToken);
