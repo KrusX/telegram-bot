@@ -69,7 +69,7 @@ namespace InrecoTelegram.Bot
             
             Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
 
-            if (await IsUserValid(chatId, cancellationToken))
+            if (await IsUserValidAsync(chatId, cancellationToken))
             {
                 foreach (var command in _commands)
                 {
@@ -79,9 +79,16 @@ namespace InrecoTelegram.Bot
                     }
                 }
             }
+            else
+            {
+                await botClient.SendTextMessageAsync(
+                chatId: chatId,
+                text: "Нет доступа.",
+                cancellationToken: cancellationToken);
+            }
         }
 
-        private static async Task<bool> IsUserValid(long chatId, CancellationToken cancellationToken)
+        private static async Task<bool> IsUserValidAsync(long chatId, CancellationToken cancellationToken)
         {
             await using var conn = new NpgsqlConnection(_connString);
             await conn.OpenAsync(cancellationToken);
