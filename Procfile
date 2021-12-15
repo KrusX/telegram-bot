@@ -1,1 +1,1 @@
-worker: cd $HOME/heroku_output && ./InrecoTelegram.Bot
+worker: cd $HOME/heroku_output && ./telegram-bot
